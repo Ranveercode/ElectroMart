@@ -1,7 +1,7 @@
 const OpenAI = require("openai");
-const Product = require("../models/Product");
-const User = require("../models/User");
-const Order = require("../models/Order");
+const Product = require("../../backend/src/models/Product");
+const User = require("../../backend/src/models/User");
+const Order = require("../../backend/src/models/Order");
 
 // Setup Groq client using OpenAI SDK
 const openai = new OpenAI({

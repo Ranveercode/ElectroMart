@@ -14,11 +14,11 @@ import WishlistPage from "./pages/Wishlist";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 // Admin pages
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import UserList from "./pages/admin/UserList";
-import ProductList from "./pages/admin/ProductList";
-import ProductEdit from "./pages/admin/ProductEdit";
-import OrderList from "./pages/admin/OrderList";
+import AdminDashboard from "../../admin/frontend/pages/AdminDashboard";
+import UserList from "../../admin/frontend/pages/UserList";
+import ProductList from "../../admin/frontend/pages/ProductList";
+import ProductEdit from "../../admin/frontend/pages/ProductEdit";
+import OrderList from "../../admin/frontend/pages/OrderList";
 import AIChatWidget from "./components/AIChatWidget";
 
 function Navbar({ cartCount, isAuthenticated, currentUser }) {
