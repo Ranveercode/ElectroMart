@@ -6,7 +6,7 @@
     "dev:frontend": "npm run dev --prefix frontend",
     "dev:admin": "npm run dev --prefix admin",
     "dev:backend": "npm run dev --prefix backend",
-    "dev:ai": "npm run dev --prefix ai-service"
+    "dev:ai": "cd ai-service-python && .\\.venv\\Scripts\\uvicorn main:app --reload --port 8000"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.12.0",

@@ -104,11 +104,12 @@ function App() {
   }, []);
 
   const fetchUserData = async () => {
+    console.log("🔄 fetchUserData called - refreshing cart, orders, wishlist...");
     try {
       const [cartRes, orderRes, wishlistRes] = await Promise.all([
-        fetch("http://localhost:5000/api/cart", { credentials: "include" }),
-        fetch("http://localhost:5000/api/orders/myorders", { credentials: "include" }),
-        fetch("http://localhost:5000/api/users/wishlist", { credentials: "include" })
+        fetch("http://localhost:5000/api/cart", { credentials: "include", cache: "no-store" }),
+        fetch("http://localhost:5000/api/orders/myorders", { credentials: "include", cache: "no-store" }),
+        fetch("http://localhost:5000/api/users/wishlist", { credentials: "include", cache: "no-store" })
       ]);
       
       if (cartRes.ok) {
@@ -626,7 +627,7 @@ function App() {
         />
       </Routes>
 
-      {isAuthenticated && <AIChatWidget currentUser={currentUser} />}
+      {isAuthenticated && <AIChatWidget currentUser={currentUser} onCartUpdated={fetchUserData} />}
     </>
   );
 }

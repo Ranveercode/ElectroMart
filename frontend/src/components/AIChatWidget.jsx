@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 
-const AIChatWidget = ({ currentUser }) => {
+const AIChatWidget = ({ currentUser, onCartUpdated }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState([
         { role: "assistant", content: `Hi ${currentUser?.firstName || "there"}! I'm your AI Shopping Assistant. How can I help you today?` }
@@ -59,6 +59,9 @@ const AIChatWidget = ({ currentUser }) => {
             if (res.ok) {
                 const data = await res.json();
                 setMessages([...newMessages, { role: "assistant", content: data.message }]);
+                
+                // Always refresh cart/orders after AI response in case it modified anything
+                if (onCartUpdated) onCartUpdated();
             } else {
                 setMessages([...newMessages, { role: "assistant", content: "Sorry, I'm having trouble connecting to my brain right now." }]);
             }
