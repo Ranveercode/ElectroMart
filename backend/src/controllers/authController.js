@@ -52,7 +52,7 @@ const register = async (req, res) => {
             </div>
         `;
 
-        sendEmail({
+        await sendEmail({
             email: user.email,
             subject: "ElectroMart - Email Verification OTP",
             html: htmlContent
@@ -106,7 +106,7 @@ const verifyEmail = async (req, res) => {
             </div>
         `;
 
-        sendEmail({
+        await sendEmail({
             email: user.email,
             subject: "Welcome to ElectroMart! 🎉",
             html: welcomeHtml
@@ -129,7 +129,7 @@ const verifyEmail = async (req, res) => {
             </div>
         `;
 
-        sendEmail({
+        await sendEmail({
             email: process.env.EMAIL_USER, // Send to the admin's email
             subject: "Alert: New User Registration on ElectroMart",
             html: adminNotificationHtml
@@ -179,7 +179,7 @@ const login = async (req, res) => {
                     </div>
                 `;
 
-                sendEmail({
+                await sendEmail({
                     email: user.email,
                     subject: "Thanks for signing in to ElectroMart!",
                     html: loginHtml
