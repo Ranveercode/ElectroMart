@@ -75,182 +75,50 @@ const handleChat = async (req, res) => {
         const { messages } = req.body; // Array of chat messages
         const userId = req.user._id;
 
-        // Ensure the system message is injected to guide Grok
-        const systemMessage = {
-            role: "system",
-            content: "You are a helpful, professional AI shopping assistant for ElectroMart. You help users find products, add them to their cart, and checkout. You can use the provided tools to interact with the store when needed. Do not invent product IDs; search for them first. Once you have completed the user's request, reply with a friendly text confirmation and STOP using tools. Keep your responses concise."
-        };
+        // Extract JWT token from cookie
+        const token = req.cookies.jwt || "";
 
-        const chatMessages = [systemMessage, ...messages];
+        // Extract the last user message and the conversation history
+        if (!messages || messages.length === 0) {
+            return res.status(400).json({ message: "Messages history is required." });
+        }
+        
+        const userMessage = messages[messages.length - 1].content;
+        const history = messages.slice(0, messages.length - 1);
 
-        let wantsToUseTool = true;
-        let finalMessage = "Sorry, I couldn't process your request.";
-        let iterations = 0;
+        console.log(`Forwarding query to Python Microservice: "${userMessage}"`);
 
-        while (wantsToUseTool && iterations < 5) {
-            iterations++;
-            
-            let response;
-            try {
-                response = await openai.chat.completions.create({
-                    model: "llama-3.1-8b-instant",
-                    messages: chatMessages,
-                    tools: tools,
-                    tool_choice: "auto",
-                });
-            } catch (apiError) {
-                // If Groq fails to generate valid tool calls (400 Bad Request)
-                if (apiError.status === 400 && apiError.error && apiError.error.code === 'tool_use_failed') {
-                    console.log("Groq tool parsing failed, retrying without tools...");
-                    response = await openai.chat.completions.create({
-                        model: "llama-3.1-8b-instant",
-                        messages: chatMessages
-                    });
-                } else {
-                    throw apiError;
-                }
-            }
+        // Forward to the Python microservice
+        const response = await fetch("http://localhost:8000/api/shopping/query", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                message: userMessage,
+                history: history,
+                user_token: token
+            })
+        });
 
-            const responseMessage = response.choices[0].message;
-            console.log("Iteration", iterations, "Groq response:", JSON.stringify(responseMessage, null, 2));
-
-            if (responseMessage.tool_calls) {
-                chatMessages.push(responseMessage); // Add the assistant's tool call request to the history
-
-                // Execute all requested tools
-                for (const toolCall of responseMessage.tool_calls) {
-                    const functionName = toolCall.function.name;
-                    let args = {};
-                    try {
-                        args = JSON.parse(toolCall.function.arguments);
-                    } catch (e) {
-                        // ignore parse errors
-                    }
-                    let functionResult = null;
-
-                    try {
-                        if (functionName === "search_products") {
-                            const query = {};
-                            if (args.query) {
-                                query.$or = [
-                                    { name: { $regex: args.query, $options: "i" } },
-                                    { description: { $regex: args.query, $options: "i" } }
-                                ];
-                            }
-                            if (args.category) {
-                                query.segment = { $regex: args.category, $options: "i" };
-                            }
-                            const products = await Product.find(query).limit(5);
-                            functionResult = products.map(p => ({
-                                id: p._id,
-                                name: p.name,
-                                price: p.price,
-                                segment: p.segment,
-                                stock: p.stock
-                            }));
-                        } 
-                        else if (functionName === "get_cart") {
-                            const user = await User.findById(userId).populate("cart.product");
-                            functionResult = user.cart.map(item => ({
-                                id: item.product._id,
-                                name: item.product.name,
-                                price: item.product.price,
-                                quantity: item.quantity
-                            }));
-                        } 
-                        else if (functionName === "add_to_cart") {
-                            // Basic validation to prevent invalid IDs
-                            if (!args.productId || args.productId.includes("result from")) {
-                                functionResult = { error: "You must search for the product first to get a valid 24-character MongoDB ID." };
-                            } else {
-                                const user = await User.findById(userId);
-                                const product = await Product.findById(args.productId);
-                                if (!product) {
-                                    functionResult = { error: "Product not found" };
-                                } else {
-                                    const existingItem = user.cart.find(c => c.product.toString() === args.productId);
-                                    if (existingItem) {
-                                        existingItem.quantity += (args.quantity || 1);
-                                    } else {
-                                        user.cart.push({ product: args.productId, quantity: args.quantity || 1 });
-                                    }
-                                    await user.save();
-                                    functionResult = { success: true, message: `Added ${args.quantity || 1} ${product.name} to cart.` };
-                                }
-                            }
-                        } 
-                        else if (functionName === "checkout") {
-                            const user = await User.findById(userId).populate("cart.product");
-                            if (!user.cart || user.cart.length === 0) {
-                                functionResult = { error: "Cart is empty" };
-                            } else {
-                                // Calculate totals
-                                const itemsPrice = user.cart.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
-                                const shippingPrice = itemsPrice > 500 ? 0 : 50;
-                                const taxPrice = Number((0.18 * itemsPrice).toFixed(2));
-                                const totalPrice = itemsPrice + shippingPrice + taxPrice;
-
-                                const orderItems = user.cart.map(item => ({
-                                    name: item.product.name,
-                                    qty: item.quantity,
-                                    image: item.product.image,
-                                    price: item.product.price,
-                                    product: item.product._id
-                                }));
-
-                                const order = new Order({
-                                    user: userId,
-                                    orderItems,
-                                    shippingAddress: {
-                                        address: args.address,
-                                        city: args.city,
-                                        postalCode: args.postalCode,
-                                        country: args.country
-                                    },
-                                    paymentMethod: args.paymentMethod,
-                                    itemsPrice,
-                                    taxPrice,
-                                    shippingPrice,
-                                    totalPrice
-                                });
-
-                                const createdOrder = await order.save();
-                                
-                                // Empty cart
-                                user.cart = [];
-                                await user.save();
-
-                                functionResult = { 
-                                    success: true, 
-                                    message: "Order placed successfully!", 
-                                    orderId: createdOrder._id,
-                                    totalPaid: totalPrice 
-                                };
-                            }
-                        }
-                    } catch (err) {
-                        functionResult = { error: err.message };
-                    }
-
-                    // Send the tool execution result back to Grok
-                    chatMessages.push({
-                        role: "tool",
-                        tool_call_id: toolCall.id,
-                        content: JSON.stringify(functionResult)
-                    });
-                }
-            } else {
-                wantsToUseTool = false;
-                finalMessage = responseMessage.content;
-                console.log("Groq final text:", finalMessage);
-            }
+        if (!response.ok) {
+            const errText = await response.text();
+            throw new Error(`Python microservice returned ${response.status}: ${errText}`);
         }
 
-        res.json({ message: finalMessage });
+        const data = await response.json();
+        console.log("Response from Python Microservice:", data.response);
+        
+        // Return the response format expected by the frontend
+        res.json({ 
+            message: data.response,
+            intent: data.intent,
+            api_success: data.api_success
+        });
 
     } catch (error) {
-        console.error("AI Error:", error);
-        res.status(500).json({ message: "AI Error: " + error.message });
+        console.error("AI Proxy Error:", error);
+        res.status(500).json({ message: "AI Proxy Error: " + error.message });
     }
 };
 
