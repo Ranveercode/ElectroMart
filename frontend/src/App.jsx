@@ -78,7 +78,7 @@ function App() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/auth/me", {
+        const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/auth/me`, {
           credentials: "include",
         });
 
@@ -107,9 +107,9 @@ function App() {
     console.log("🔄 fetchUserData called - refreshing cart, orders, wishlist...");
     try {
       const [cartRes, orderRes, wishlistRes] = await Promise.all([
-        fetch("http://localhost:5000/api/cart", { credentials: "include", cache: "no-store" }),
-        fetch("http://localhost:5000/api/orders/myorders", { credentials: "include", cache: "no-store" }),
-        fetch("http://localhost:5000/api/users/wishlist", { credentials: "include", cache: "no-store" })
+        fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/cart`, { credentials: "include", cache: "no-store" }),
+        fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/orders/myorders`, { credentials: "include", cache: "no-store" }),
+        fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/users/wishlist`, { credentials: "include", cache: "no-store" })
       ]);
       
       if (cartRes.ok) {
@@ -156,7 +156,7 @@ function App() {
 
   const handleLogout = async () => {
     try {
-      await fetch("http://localhost:5000/api/auth/logout", {
+      await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/auth/logout`, {
         method: "POST",
         credentials: "include",
       });
@@ -183,7 +183,7 @@ function App() {
       const existing = cartItems.find((item) => item._id === product._id);
       const newQuantity = existing ? existing.quantity + 1 : 1;
       
-      const response = await fetch("http://localhost:5000/api/cart", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/cart`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -211,7 +211,7 @@ function App() {
         showToast("Already in wishlist", "error");
         return;
       }
-      const response = await fetch("http://localhost:5000/api/users/wishlist", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/users/wishlist`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -229,7 +229,7 @@ function App() {
 
   const removeWishlist = async (id) => {
     try {
-      const response = await fetch("http://localhost:5000/api/users/wishlist", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/users/wishlist`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -249,7 +249,7 @@ function App() {
     const existing = cartItems.find((item) => item._id === id);
     if(!existing) return;
     try {
-      const response = await fetch("http://localhost:5000/api/cart", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/cart`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -273,7 +273,7 @@ function App() {
        return removeFromCart(id);
     }
     try {
-      const response = await fetch("http://localhost:5000/api/cart", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/cart`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -292,7 +292,7 @@ function App() {
 
   const removeFromCart = async (id) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/cart/${id}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/cart/${id}`, {
         method: "DELETE",
         credentials: "include"
       });
@@ -363,7 +363,7 @@ function App() {
     };
 
     try {
-       const response = await fetch("http://localhost:5000/api/orders", {
+       const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/orders`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
@@ -374,7 +374,7 @@ function App() {
           const newOrder = await response.json();
           setOrders(prev => [newOrder, ...prev]);
           
-          await fetch("http://localhost:5000/api/cart/clear", {
+          await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/cart/clear`, {
              method: "DELETE",
              credentials: "include"
           });

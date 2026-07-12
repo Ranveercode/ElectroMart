@@ -14,13 +14,13 @@ function ProductDetailsPage({ onAddToCart, onAddToWishlist }) {
       try {
         setLoading(true);
         // Fetch single product
-        const productRes = await fetch(`http://localhost:5000/api/products/${id}`);
+        const productRes = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/products/${id}`);
         if (!productRes.ok) throw new Error("Product not found");
         const productData = await productRes.json();
         setProduct(productData);
 
         // Fetch related products in same segment
-        const relatedRes = await fetch(`http://localhost:5000/api/products?segment=${productData.segment}`);
+        const relatedRes = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/products?segment=${productData.segment}`);
         if (relatedRes.ok) {
           const allRelated = await relatedRes.json();
           // Filter out the current product

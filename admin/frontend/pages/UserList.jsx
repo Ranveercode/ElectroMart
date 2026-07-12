@@ -11,7 +11,7 @@ const UserList = () => {
 
     const fetchUsers = async () => {
         try {
-            const res = await fetch("http://localhost:5000/api/users", {
+            const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/users`, {
                 credentials: "include",
             });
             if (res.ok) {
@@ -29,7 +29,7 @@ const UserList = () => {
         if (!window.confirm("Are you sure you want to delete this user? This cannot be undone!")) return;
         
         try {
-            const res = await fetch(`http://localhost:5000/api/users/${id}`, {
+            const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/users/${id}`, {
                 method: "DELETE",
                 credentials: "include",
             });
@@ -46,7 +46,7 @@ const UserList = () => {
         if (!window.confirm(`Are you sure you want to ${actionText} this user?`)) return;
 
         try {
-            const res = await fetch(`http://localhost:5000/api/users/${id}/ban`, {
+            const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/users/${id}/ban`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",
@@ -71,7 +71,7 @@ const UserList = () => {
         if (!window.confirm(`Are you sure you want to change role to ${newRole}?`)) return;
 
         try {
-            const res = await fetch(`http://localhost:5000/api/users/${id}`, {
+            const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/users/${id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",

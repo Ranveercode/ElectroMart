@@ -27,7 +27,7 @@ const ProductEdit = () => {
 
     const fetchProduct = async () => {
         try {
-            const res = await fetch(`http://localhost:5000/api/products/${id}`);
+            const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/products/${id}`);
             if (res.ok) {
                 const data = await res.json();
                 setFormData({
@@ -62,8 +62,8 @@ const ProductEdit = () => {
         
         try {
             const url = isNew 
-                ? "http://localhost:5000/api/products" 
-                : `http://localhost:5000/api/products/${id}`;
+                ? `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/products` 
+                : `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/products/${id}`;
             const method = isNew ? "POST" : "PUT";
 
             const res = await fetch(url, {
