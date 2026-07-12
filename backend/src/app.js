@@ -11,19 +11,20 @@ const app = express();
 app.use(helmet());
 app.use(compression());
 
-// CORS (frontend + admin ke liye)
 const allowedOrigins = [
     "http://localhost:5173",
     "http://localhost:5174",
-    process.env.CLIENT_URL,
-    process.env.ADMIN_URL
+    process.env.CLIENT_URL?.replace(/\/$/, ""),
+    process.env.ADMIN_URL?.replace(/\/$/, "")
 ].filter(Boolean);
 
 app.use(cors({
     origin: function (origin, callback) {
-        if (!origin || allowedOrigins.includes(origin)) {
+        // Allow if no origin (e.g. server-to-server), or if in exact list, or if it's a Vercel frontend URL
+        if (!origin || allowedOrigins.includes(origin) || origin.includes("electro-mart") || origin.includes("vercel.app")) {
             callback(null, true);
         } else {
+            console.error(`CORS Blocked: Origin ${origin} not in allowed list:`, allowedOrigins);
             callback(new Error('Not allowed by CORS'));
         }
     },
