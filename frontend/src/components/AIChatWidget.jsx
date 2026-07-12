@@ -16,7 +16,7 @@ const AIChatWidget = ({ currentUser, onCartUpdated }) => {
     // Load last 5 messages from server when chat opens
     useEffect(() => {
         if (isOpen) {
-            fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/ai/history`, {
+            fetch(`https://electro-mart-qalg.vercel.app/api/ai/history`, {
                 credentials: "include",
             })
                 .then((res) => res.json())
@@ -49,7 +49,7 @@ const AIChatWidget = ({ currentUser, onCartUpdated }) => {
         setLoading(true);
 
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/ai/chat`, {
+            const res = await fetch(`https://electro-mart-qalg.vercel.app/api/ai/chat`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",

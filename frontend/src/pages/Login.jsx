@@ -39,7 +39,7 @@ function LoginPage({ isAuthenticated, onLogin }) {
     setError("");
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/auth/login`, {
+      const response = await fetch(`https://electro-mart-qalg.vercel.app/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
