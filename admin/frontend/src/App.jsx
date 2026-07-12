@@ -6,7 +6,7 @@ import ProductList from "./pages/ProductList";
 import ProductEdit from "./pages/ProductEdit";
 import OrderList from "./pages/OrderList";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API = "https://electro-mart-qalg.vercel.app";
 
 // Auth Context
 const AuthContext = createContext(null);

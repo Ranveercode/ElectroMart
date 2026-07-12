@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API = "https://electro-mart-qalg.vercel.app";
 
 const OrderList = () => {
     const [orders, setOrders] = useState([]);
