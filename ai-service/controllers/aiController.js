@@ -110,7 +110,11 @@ const handleChat = async (req, res) => {
         console.log("Response from Python Microservice:", data.response);
         
         // Return the response format expected by the frontend
-        res.json({ message: data.response });
+        res.json({ 
+            message: data.response,
+            intent: data.intent,
+            api_success: data.api_success
+        });
 
     } catch (error) {
         console.error("AI Proxy Error:", error);
