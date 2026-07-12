@@ -35,12 +35,11 @@ function Navbar({ cartCount, isAuthenticated, currentUser }) {
           </Link>
 
           <Link to="/profile" className="outline-btn nav-btn">
-            Profile
+            👤 Profile
           </Link>
-          
           {currentUser?.role === "admin" && (
-            <a href={import.meta.env.VITE_ADMIN_URL || "http://localhost:5174"} className="primary-btn nav-btn" style={{ background: "#d32f2f", color: "white" }}>
-              Admin Panel
+            <a href="https://electro-mart-6qle-beige.vercel.app" className="primary-btn nav-btn" style={{ background: "#d32f2f", color: "white" }}>
+              ⚙️ Admin Panel
             </a>
           )}
 
