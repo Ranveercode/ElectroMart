@@ -192,9 +192,12 @@ function App() {
         })) || [];
         setCartItems(formattedCart);
         showToast(`${product.name} added to cart`);
+      } else {
+        const errData = await response.json().catch(()=>({}));
+        showToast(errData.message || "Failed to add to cart", "error");
       }
     } catch(err) {
-      showToast("Error adding to cart", "error");
+      showToast("Network error adding to cart", "error");
     }
   };
 
@@ -215,9 +218,12 @@ function App() {
          const wishlistData = await response.json();
          setWishlistItems(wishlistData);
          showToast(`${product.name} added to wishlist`);
+      } else {
+         const errData = await response.json().catch(()=>({}));
+         showToast(errData.message || "Failed to add to wishlist", "error");
       }
     } catch(err) {
-       showToast("Error adding to wishlist", "error");
+       showToast("Network error adding to wishlist", "error");
     }
   };
 
