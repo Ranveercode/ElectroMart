@@ -1,4 +1,5 @@
 const Order = require("../models/Order");
+const sendEmail = require("../utils/sendEmail");
 
 // @desc    Create new order
 // @route   POST /api/orders
@@ -34,6 +35,61 @@ const addOrderItems = async (req, res) => {
             });
 
             const createdOrder = await order.save();
+
+            // Prepare Email HTML
+            const itemsHtml = orderItems.map(item => `
+                <tr>
+                    <td style="padding: 10px; border-bottom: 1px solid #ddd;">${item.name}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: center;">${item.qty}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">₹${item.price}</td>
+                </tr>
+            `).join("");
+
+            const htmlContent = `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #ddd; border-radius: 10px; overflow: hidden;">
+                    <div style="background: #1a1a2e; color: white; padding: 20px; text-align: center;">
+                        <h2>Order Confirmation</h2>
+                        <p>Thank you for your purchase at ElectroMart!</p>
+                    </div>
+                    <div style="padding: 20px;">
+                        <h3>Hi ${req.user.firstName},</h3>
+                        <p>Your order <strong>#${createdOrder._id}</strong> has been placed successfully.</p>
+                        
+                        <h4>Order Details:</h4>
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: #f8f9fa;">
+                                    <th style="padding: 10px; border-bottom: 2px solid #ddd; text-align: left;">Item</th>
+                                    <th style="padding: 10px; border-bottom: 2px solid #ddd;">Qty</th>
+                                    <th style="padding: 10px; border-bottom: 2px solid #ddd; text-align: right;">Price</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${itemsHtml}
+                            </tbody>
+                        </table>
+                        
+                        <div style="margin-top: 20px; text-align: right;">
+                            <p><strong>Subtotal:</strong> ₹${itemsPrice}</p>
+                            <p><strong>Shipping:</strong> ₹${shippingPrice}</p>
+                            <p><strong>Tax:</strong> ₹${taxPrice}</p>
+                            <h3 style="color: #1a1a2e;">Total: ₹${totalPrice}</h3>
+                        </div>
+
+                        <h4>Shipping Address:</h4>
+                        <p>${shippingAddress.address}, ${shippingAddress.city}<br/>
+                        ${shippingAddress.postalCode}, ${shippingAddress.country}</p>
+                    </div>
+                </div>
+            `;
+
+            // Send Email asynchronously
+            sendEmail({
+                email: req.user.email,
+                subject: `Order Confirmation - ElectroMart (#${createdOrder._id})`,
+                html: htmlContent
+            });
+
             res.status(201).json(createdOrder);
         }
     } catch (error) {

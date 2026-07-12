@@ -125,6 +125,42 @@ const updateUser = async (req, res) => {
         res.status(500).json({ message: "Server Error", error: error.message });
     }
 };
+// @desc    Toggle user ban status
+// @route   PUT /api/users/:id/ban
+// @access  Private/Admin
+const toggleBanUser = async (req, res) => {
+    try {
+        // Prevent admin from banning themselves
+        if (req.user._id.toString() === req.params.id) {
+            return res.status(400).json({ message: "You cannot ban yourself" });
+        }
+
+        const user = await User.findById(req.params.id);
+        
+        if (user) {
+            if (user.role === "admin") {
+                return res.status(400).json({ message: "You cannot ban another admin. Demote them first." });
+            }
+
+            user.isBanned = !user.isBanned;
+            const updatedUser = await user.save();
+            
+            res.json({
+                message: user.isBanned ? "User has been banned" : "User has been unbanned",
+                user: {
+                    _id: updatedUser._id,
+                    firstName: updatedUser.firstName,
+                    email: updatedUser.email,
+                    isBanned: updatedUser.isBanned
+                }
+            });
+        } else {
+            res.status(404).json({ message: "User not found" });
+        }
+    } catch (error) {
+        res.status(500).json({ message: "Server Error", error: error.message });
+    }
+};
 
 module.exports = {
     getWishlist,
@@ -133,4 +169,5 @@ module.exports = {
     deleteUser,
     getUserById,
     updateUser,
+    toggleBanUser,
 };

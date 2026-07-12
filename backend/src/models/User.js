@@ -41,6 +41,17 @@ const userSchema = new mongoose.Schema(
                 ref: "Product",
             },
         ],
+        isVerified: {
+            type: Boolean,
+            default: false,
+        },
+        verificationOTP: {
+            type: String,
+        },
+        isBanned: {
+            type: Boolean,
+            default: false,
+        },
     },
     {
         timestamps: true,

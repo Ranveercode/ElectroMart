@@ -15,6 +15,10 @@ const protect = async (req, res, next) => {
             // Get user from the token, exclude password
             req.user = await User.findById(decoded.id).select("-password");
 
+            if (req.user && req.user.isBanned) {
+                return res.status(403).json({ message: "Your account has been banned by an administrator." });
+            }
+
             next();
         } catch (error) {
             console.error(error);

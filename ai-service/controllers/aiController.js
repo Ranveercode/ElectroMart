@@ -1,125 +1,108 @@
-const OpenAI = require("openai");
-const Product = require("../../backend/src/models/Product");
-const User = require("../../backend/src/models/User");
-const Order = require("../../backend/src/models/Order");
+const { HumanMessage, SystemMessage, AIMessage } = require("@langchain/core/messages");
+const { createAgentGraph, SYSTEM_PROMPT } = require("../graph/agentGraph");
+const ChatHistory = require("../../backend/src/models/ChatHistory");
 
-// Setup Groq client using OpenAI SDK
-const openai = new OpenAI({
-    apiKey: process.env.GROQ_API_KEY || "dummy_key",
-    baseURL: "https://api.groq.com/openai/v1",
-});
-
-// Tool Definitions
-const tools = [
-    {
-        type: "function",
-        function: {
-            name: "search_products",
-            description: "Search for products in the store's catalog based on a query or category.",
-            parameters: {
-                type: "object",
-                properties: {
-                    query: { type: "string", description: "Search term like 'laptop', 'smartphone', 'cheap'" },
-                    category: { type: "string", description: "Product segment/category, e.g., 'Electronics', 'Home'" }
-                },
-                required: ["query"]
-            }
-        }
-    },
-    {
-        type: "function",
-        function: {
-            name: "get_cart",
-            description: "View the current items in the user's shopping cart.",
-            parameters: { type: "object", properties: {} }
-        }
-    },
-    {
-        type: "function",
-        function: {
-            name: "add_to_cart",
-            description: "Add a product to the user's cart. You MUST use search_products first to find the exact MongoDB productId. Do NOT call this tool simultaneously with search_products.",
-            parameters: {
-                type: "object",
-                properties: {
-                    productId: { type: "string", description: "The exact MongoDB _id of the product" },
-                    quantity: { type: "number", description: "Number of items to add", default: 1 }
-                },
-                required: ["productId", "quantity"]
-            }
-        }
-    },
-    {
-        type: "function",
-        function: {
-            name: "checkout",
-            description: "Place an order using the items currently in the user's cart.",
-            parameters: {
-                type: "object",
-                properties: {
-                    address: { type: "string", description: "Shipping street address" },
-                    city: { type: "string" },
-                    postalCode: { type: "string" },
-                    country: { type: "string" },
-                    paymentMethod: { type: "string", enum: ["Cash On Delivery", "PayPal", "Credit Card"] }
-                },
-                required: ["address", "city", "postalCode", "country", "paymentMethod"]
-            }
-        }
-    }
-];
-
-// Controller
+/**
+ * POST /api/ai/chat
+ * Handles a user chat message through the LangGraph agentic workflow.
+ * Loads last 5 messages from MongoDB for context continuity.
+ */
 const handleChat = async (req, res) => {
     try {
-        const { messages } = req.body; // Array of chat messages
+        const { messages } = req.body;
         const userId = req.user._id;
 
-        // Extract JWT token from cookie
-        const token = req.cookies.jwt || "";
+        // Get the latest user message (last message in the array)
+        const userMessages = messages.filter((m) => m.role === "user");
+        const latestUserMessage = userMessages[userMessages.length - 1]?.content;
 
-        // Extract the last user message and the conversation history
-        if (!messages || messages.length === 0) {
-            return res.status(400).json({ message: "Messages history is required." });
-        }
-        
-        const userMessage = messages[messages.length - 1].content;
-        const history = messages.slice(0, messages.length - 1);
-
-        console.log(`Forwarding query to Python Microservice: "${userMessage}"`);
-
-        // Forward to the Python microservice
-        const response = await fetch("http://localhost:8000/api/shopping/query", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                message: userMessage,
-                history: history,
-                user_token: token
-            })
-        });
-
-        if (!response.ok) {
-            const errText = await response.text();
-            throw new Error(`Python microservice returned ${response.status}: ${errText}`);
+        if (!latestUserMessage) {
+            return res.status(400).json({ message: "No user message provided." });
         }
 
-        const data = await response.json();
-        console.log("Response from Python Microservice:", data.response);
-        
-        // Return the response format expected by the frontend
-        res.json({ 
-            message: data.response,
-            intent: data.intent,
-            api_success: data.api_success
-        });
+        // --- Load last 5 messages from MongoDB for memory ---
+        const history = await ChatHistory.find({ user: userId })
+            .sort({ createdAt: -1 })
+            .limit(5)
+            .lean();
 
+        // Reverse to chronological order (oldest first)
+        history.reverse();
+
+        // Build LangGraph message array: System → History → Current
+        const graphMessages = [new SystemMessage(SYSTEM_PROMPT)];
+
+        // Add historical messages
+        for (const msg of history) {
+            if (msg.role === "user") {
+                graphMessages.push(new HumanMessage(msg.content));
+            } else if (msg.role === "assistant") {
+                graphMessages.push(new AIMessage(msg.content));
+            }
+        }
+
+        // Add the current user message
+        graphMessages.push(new HumanMessage(latestUserMessage));
+
+        // --- Invoke the LangGraph Agent ---
+        const agent = createAgentGraph(userId);
+        const result = await agent.invoke(
+            { messages: graphMessages },
+            { recursionLimit: 10 }
+        );
+
+        // Extract the final AI response (last message that has text content)
+        const resultMessages = result.messages;
+        let finalResponse = "Sorry, I couldn't process your request.";
+
+        for (let i = resultMessages.length - 1; i >= 0; i--) {
+            const msg = resultMessages[i];
+            if (msg.content && typeof msg.content === "string" && msg.content.trim()) {
+                // Skip tool result messages
+                if (msg._getType && msg._getType() === "tool") continue;
+                finalResponse = msg.content;
+                break;
+            }
+        }
+
+        // --- Save to MongoDB for future memory ---
+        await ChatHistory.create([
+            { user: userId, role: "user", content: latestUserMessage },
+            { user: userId, role: "assistant", content: finalResponse },
+        ]);
+
+        res.json({ message: finalResponse });
     } catch (error) {
-        console.error("AI Proxy Error:", error);
-        res.status(500).json({ message: "AI Proxy Error: " + error.message });
+        console.error("AI Agent Error:", error);
+        res.status(500).json({ message: "AI Error: " + error.message });
     }
 };
 
-module.exports = { handleChat };
+/**
+ * GET /api/ai/history
+ * Returns the last 5 messages for the logged-in user.
+ */
+const getChatHistory = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const history = await ChatHistory.find({ user: userId })
+            .sort({ createdAt: -1 })
+            .limit(5)
+            .lean();
+
+        // Reverse to chronological order
+        history.reverse();
+
+        const messages = history.map((msg) => ({
+            role: msg.role,
+            content: msg.content,
+        }));
+
+        res.json({ messages });
+    } catch (error) {
+        console.error("History Error:", error);
+        res.status(500).json({ message: "Failed to load chat history." });
+    }
+};
+
+module.exports = { handleChat, getChatHistory };

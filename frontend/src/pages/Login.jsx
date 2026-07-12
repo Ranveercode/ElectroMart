@@ -13,6 +13,7 @@ function LoginPage({ isAuthenticated, onLogin }) {
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   if (isAuthenticated) {
     return <Navigate to="/products" replace />;
@@ -92,17 +93,35 @@ function LoginPage({ isAuthenticated, onLogin }) {
             />
           </div>
 
-          <div className="form-group">
+          <div className="form-group" style={{ position: "relative" }}>
             <label htmlFor="loginPassword">Password</label>
             <input
               id="loginPassword"
-              type="password"
+              type={showPassword ? "text" : "password"}
               name="password"
               className="input-control"
               value={formData.password}
               onChange={handleChange}
               placeholder="Enter your password"
+              style={{ paddingRight: "40px" }}
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              style={{
+                position: "absolute",
+                right: "10px",
+                top: "35px",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                fontSize: "1.2rem",
+                opacity: 0.7
+              }}
+              title={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? "👁️‍🗨️" : "👁️"}
+            </button>
           </div>
 
           {error ? <p className="auth-error">{error}</p> : null}

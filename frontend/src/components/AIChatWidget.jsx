@@ -13,6 +13,26 @@ const AIChatWidget = ({ currentUser, onCartUpdated }) => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
+    // Load last 5 messages from server when chat opens
+    useEffect(() => {
+        if (isOpen) {
+            fetch("http://localhost:5000/api/ai/history", {
+                credentials: "include",
+            })
+                .then((res) => res.json())
+                .then((data) => {
+                    if (data.messages && data.messages.length > 0) {
+                        const greeting = {
+                            role: "assistant",
+                            content: `Hi ${currentUser?.firstName || "there"}! I'm your AI Shopping Assistant. How can I help you today?`,
+                        };
+                        setMessages([greeting, ...data.messages]);
+                    }
+                })
+                .catch((err) => console.error("Failed to load chat history:", err));
+        }
+    }, [isOpen]);
+
     useEffect(() => {
         scrollToBottom();
     }, [messages, isOpen]);
