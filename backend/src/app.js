@@ -42,7 +42,7 @@ const productRoutes = require("./routes/productRoutes");
 const cartRoutes = require("./routes/cartRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const userRoutes = require("./routes/userRoutes");
-const aiRoutes = require('../../ai-service/routes/aiRoutes'); // ai routes imported from microservice
+const aiRoutes = require('./routes/aiRoutes'); // ai routes moved into backend
 
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);

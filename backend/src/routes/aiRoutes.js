@@ -1,6 +1,6 @@
 const express = require("express");
 const { handleChat, getChatHistory } = require("../controllers/aiController");
-const { protect } = require("../../backend/src/middlewares/authMiddleware");
+const { protect } = require("../middlewares/authMiddleware");
 
 const router = express.Router();
 

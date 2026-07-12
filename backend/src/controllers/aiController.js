@@ -1,7 +1,7 @@
 const OpenAI = require("openai");
-const Product = require("../../backend/src/models/Product");
-const User = require("../../backend/src/models/User");
-const Order = require("../../backend/src/models/Order");
+const Product = require("../models/Product");
+const User = require("../models/User");
+const Order = require("../models/Order");
 
 // Setup Groq client using OpenAI SDK
 const openai = new OpenAI({
@@ -130,7 +130,7 @@ const handleChat = async (req, res) => {
 const getChatHistory = async (req, res) => {
     try {
         const userId = req.user._id;
-        const ChatHistory = require("../../backend/src/models/ChatHistory");
+        const ChatHistory = require("../models/ChatHistory");
         const history = await ChatHistory.find({ user: userId })
             .sort({ createdAt: -1 })
             .limit(5)
