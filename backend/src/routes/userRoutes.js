@@ -5,7 +5,8 @@ const {
     getUsers,
     deleteUser,
     getUserById,
-    updateUser 
+    updateUser,
+    toggleBanUser
 } = require("../controllers/userController");
 const { protect, admin } = require("../middlewares/authMiddleware");
 
@@ -17,5 +18,7 @@ router.route("/:id")
     .get(protect, admin, getUserById)
     .delete(protect, admin, deleteUser)
     .put(protect, admin, updateUser);
+
+router.route("/:id/ban").put(protect, admin, toggleBanUser);
 
 module.exports = router;
