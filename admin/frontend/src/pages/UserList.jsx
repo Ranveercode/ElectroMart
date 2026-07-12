@@ -88,13 +88,15 @@ const UserList = () => {
                             <td>
                                 <div className="btn-group">
                                     {user.role !== "admin" && (
-                                        <button onClick={() => handleBan(user._id, user.isBanned)} className={`btn btn-sm ${user.isBanned ? "btn-outline" : "btn-warning"}`}>
-                                            {user.isBanned ? "Unban" : "Ban"}
-                                        </button>
+                                        <>
+                                            <button onClick={() => handleBan(user._id, user.isBanned)} className={`btn btn-sm ${user.isBanned ? "btn-outline" : "btn-warning"}`}>
+                                                {user.isBanned ? "Unban" : "Ban"}
+                                            </button>
+                                            <button onClick={() => handleDelete(user._id)} className="btn btn-danger btn-sm">
+                                                Delete
+                                            </button>
+                                        </>
                                     )}
-                                    <button onClick={() => handleDelete(user._id)} className="btn btn-danger btn-sm">
-                                        Delete
-                                    </button>
                                 </div>
                             </td>
                         </tr>
