@@ -13,12 +13,7 @@ import ForgotPasswordPage from "./pages/ForgotPassword";
 import WishlistPage from "./pages/Wishlist";
 import ProtectedRoute from "./components/ProtectedRoute";
 
-// Admin pages
-import AdminDashboard from "../../admin/frontend/pages/AdminDashboard";
-import UserList from "../../admin/frontend/pages/UserList";
-import ProductList from "../../admin/frontend/pages/ProductList";
-import ProductEdit from "../../admin/frontend/pages/ProductEdit";
-import OrderList from "../../admin/frontend/pages/OrderList";
+
 import AIChatWidget from "./components/AIChatWidget";
 
 function Navbar({ cartCount, isAuthenticated, currentUser }) {
@@ -44,9 +39,9 @@ function Navbar({ cartCount, isAuthenticated, currentUser }) {
           </Link>
           
           {currentUser?.role === "admin" && (
-            <Link to="/admin" className="primary-btn nav-btn" style={{ background: "#d32f2f", color: "white" }}>
+            <a href={import.meta.env.VITE_ADMIN_URL || "http://localhost:5174"} className="primary-btn nav-btn" style={{ background: "#d32f2f", color: "white" }}>
               Admin Panel
-            </Link>
+            </a>
           )}
 
           <span className="user-chip">{currentUser?.name || "Customer"}</span>
@@ -571,55 +566,7 @@ function App() {
           }
         />
 
-        {/* Admin Routes */}
-        <Route
-          path="/admin"
-          element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} adminOnly={true} currentUser={currentUser}>
-              <AdminDashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/users"
-          element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} adminOnly={true} currentUser={currentUser}>
-              <UserList />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/products"
-          element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} adminOnly={true} currentUser={currentUser}>
-              <ProductList />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/products/new"
-          element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} adminOnly={true} currentUser={currentUser}>
-              <ProductEdit />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/products/:id/edit"
-          element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} adminOnly={true} currentUser={currentUser}>
-              <ProductEdit />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/orders"
-          element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} adminOnly={true} currentUser={currentUser}>
-              <OrderList />
-            </ProtectedRoute>
-          }
-        />
+
 
         <Route
           path="*"
