@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from dotenv import load_dotenv
+from dotenv import load_dotenv #type: ignore
 
 # Load environment variables from current working directory first, and then from microservice folder
 load_dotenv()
