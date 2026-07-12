@@ -112,6 +112,29 @@ const verifyEmail = async (req, res) => {
             html: welcomeHtml
         });
 
+        // Send notification to Admin
+        const adminNotificationHtml = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+                <h2 style="color: #1a1a2e; text-align: center;">New User Registration</h2>
+                <p>Hello Admin,</p>
+                <p>A new user has successfully signed up and verified their email on ElectroMart.</p>
+                <div style="background: #f4f4f4; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                    <p><strong>First Name:</strong> ${user.firstName}</p>
+                    <p><strong>Last Name:</strong> ${user.lastName}</p>
+                    <p><strong>Email:</strong> ${user.email}</p>
+                    <p><strong>Role:</strong> ${user.role}</p>
+                    <p><strong>Time:</strong> ${new Date().toLocaleString()}</p>
+                </div>
+                <p>You can manage this user from the Admin Dashboard.</p>
+            </div>
+        `;
+
+        sendEmail({
+            email: process.env.EMAIL_USER, // Send to the admin's email
+            subject: "Alert: New User Registration on ElectroMart",
+            html: adminNotificationHtml
+        });
+
         res.status(200).json({
             _id: user._id,
             firstName: user.firstName,
@@ -144,22 +167,24 @@ const login = async (req, res) => {
 
             generateToken(res, user._id);
 
-            // Send "Thanks for signing in" Email
-            const loginHtml = `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-                    <h2 style="color: #1a1a2e; text-align: center;">Welcome back to ElectroMart!</h2>
-                    <p>Hi ${user.firstName},</p>
-                    <p><strong>Thank you for signing in to ElectroMart. Hope your shopping experience will be good!</strong></p>
-                    <p>We're glad to see you again. Feel free to browse our latest smart gadgets, add items to your cart, and ask our AI assistant for product recommendations!</p>
-                    <p>Thanks,<br/>ElectroMart Team</p>
-                </div>
-            `;
+            // Send "Thanks for signing in" Email ONLY to customers, not to admins
+            if (user.role !== 'admin') {
+                const loginHtml = `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+                        <h2 style="color: #1a1a2e; text-align: center;">Welcome back to ElectroMart!</h2>
+                        <p>Hi ${user.firstName},</p>
+                        <p><strong>Thank you for signing in to ElectroMart. Hope your shopping experience will be good!</strong></p>
+                        <p>We're glad to see you again. Feel free to browse our latest smart gadgets, add items to your cart, and ask our AI assistant for product recommendations!</p>
+                        <p>Thanks,<br/>ElectroMart Team</p>
+                    </div>
+                `;
 
-            sendEmail({
-                email: user.email,
-                subject: "Thanks for signing in to ElectroMart!",
-                html: loginHtml
-            });
+                sendEmail({
+                    email: user.email,
+                    subject: "Thanks for signing in to ElectroMart!",
+                    html: loginHtml
+                });
+            }
 
             res.status(200).json({
                 _id: user._id,
