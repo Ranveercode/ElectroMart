@@ -54,21 +54,6 @@ const UserList = () => {
         }
     };
 
-    const handlePromote = async (id, currentRole) => {
-        const newRole = currentRole === "admin" ? "user" : "admin";
-        if (!window.confirm(`Are you sure you want to change role to ${newRole}?`)) return;
-        try {
-            const res = await fetch(`${API}/api/users/${id}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include",
-                body: JSON.stringify({ role: newRole }),
-            });
-            if (res.ok) fetchUsers();
-        } catch (error) {
-            console.error("Failed to update user", error);
-        }
-    };
 
     if (loading) return <div className="loading">Loading users...</div>;
 
@@ -102,9 +87,7 @@ const UserList = () => {
                             </td>
                             <td>
                                 <div className="btn-group">
-                                    <button onClick={() => handlePromote(user._id, user.role)} className="btn btn-outline btn-sm">
-                                        Toggle Admin
-                                    </button>
+
                                     <button onClick={() => handleBan(user._id, user.isBanned)} className={`btn btn-sm ${user.isBanned ? "btn-outline" : "btn-warning"}`}>
                                         {user.isBanned ? "Unban" : "Ban"}
                                     </button>
