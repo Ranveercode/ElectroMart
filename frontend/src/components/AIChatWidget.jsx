@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import API, { authFetch } from "../api";
 
 const AIChatWidget = ({ currentUser, onCartUpdated }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -16,9 +17,7 @@ const AIChatWidget = ({ currentUser, onCartUpdated }) => {
     // Load last 5 messages from server when chat opens
     useEffect(() => {
         if (isOpen) {
-            fetch(`https://electro-mart-qalg.vercel.app/api/ai/history`, {
-                credentials: "include",
-            })
+            authFetch(`${API}/api/ai/history`)
                 .then((res) => res.json())
                 .then((data) => {
                     if (data.messages && data.messages.length > 0) {
@@ -49,10 +48,9 @@ const AIChatWidget = ({ currentUser, onCartUpdated }) => {
         setLoading(true);
 
         try {
-            const res = await fetch(`https://electro-mart-qalg.vercel.app/api/ai/chat`, {
+            const res = await authFetch(`${API}/api/ai/chat`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                credentials: "include",
                 body: JSON.stringify({ messages: newMessages })
             });
 

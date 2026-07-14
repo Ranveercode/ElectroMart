@@ -93,7 +93,7 @@ const verifyEmail = async (req, res) => {
         user.verificationOTP = undefined;
         await user.save();
 
-        generateToken(res, user._id);
+        const token = generateToken(res, user._id);
 
         // Send Welcome Email
         const welcomeHtml = `
@@ -130,7 +130,7 @@ const verifyEmail = async (req, res) => {
         `;
 
         await sendEmail({
-            email: process.env.EMAIL_USER, // Send to the admin's email
+            email: process.env.EMAIL_USER,
             subject: "Alert: New User Registration on ElectroMart",
             html: adminNotificationHtml
         });
@@ -141,6 +141,7 @@ const verifyEmail = async (req, res) => {
             lastName: user.lastName,
             email: user.email,
             role: user.role,
+            token,
         });
     } catch (error) {
         res.status(500).json({ message: error.message || "Server Error" });
@@ -165,7 +166,7 @@ const login = async (req, res) => {
                 return res.status(401).json({ message: "Please verify your email address first. Sign up again to receive a new OTP." });
             }
 
-            generateToken(res, user._id);
+            const token = generateToken(res, user._id);
 
             // Send "Thanks for signing in" Email ONLY to customers, not to admins
             if (user.role !== 'admin') {
@@ -192,6 +193,7 @@ const login = async (req, res) => {
                 lastName: user.lastName,
                 email: user.email,
                 role: user.role,
+                token,
             });
         } else {
             res.status(401).json({ message: "Invalid email or password" });

@@ -58,6 +58,7 @@ function LoginPage({ isAuthenticated, onLogin }) {
         name: `${data.firstName} ${data.lastName}`,
         email: data.email,
         role: data.role,
+        token: data.token,
       });
 
       navigate(from, { replace: true });

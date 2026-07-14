@@ -113,6 +113,7 @@ function SignupPage({ isAuthenticated, onSignup }) {
         name: `${data.firstName} ${data.lastName}`,
         email: data.email,
         role: data.role,
+        token: data.token,
       });
 
       navigate("/products", { replace: true });

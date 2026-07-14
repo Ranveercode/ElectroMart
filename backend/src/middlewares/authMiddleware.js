@@ -4,8 +4,16 @@ const User = require("../models/User");
 const protect = async (req, res, next) => {
     let token;
 
-    // Read the JWT from the cookie
-    token = req.cookies.jwt;
+    // Check Authorization header first (works on all browsers including mobile)
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+        token = authHeader.split(" ")[1];
+    }
+
+    // Fall back to cookie (works on desktop browsers)
+    if (!token) {
+        token = req.cookies.jwt;
+    }
 
     if (token) {
         try {
@@ -38,3 +46,4 @@ const admin = (req, res, next) => {
 };
 
 module.exports = { protect, admin };
+

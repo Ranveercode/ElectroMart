@@ -12,7 +12,7 @@ import ProfilePage from "./pages/Profile";
 import ForgotPasswordPage from "./pages/ForgotPassword";
 import WishlistPage from "./pages/Wishlist";
 import ProtectedRoute from "./components/ProtectedRoute";
-
+import API, { authFetch, setToken, removeToken } from "./api";
 
 import AIChatWidget from "./components/AIChatWidget";
 
@@ -72,9 +72,7 @@ function App() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await fetch(`https://electro-mart-qalg.vercel.app/api/auth/me`, {
-          credentials: "include",
-        });
+        const response = await authFetch(`${API}/api/auth/me`);
 
         if (response.ok) {
           const userData = await response.json();
@@ -84,6 +82,7 @@ function App() {
         } else {
           setIsAuthenticated(false);
           setCurrentUser(null);
+          removeToken();
         }
       } catch (error) {
         console.error("Auth check failed:", error);
@@ -101,9 +100,9 @@ function App() {
     console.log("🔄 fetchUserData called - refreshing cart, orders, wishlist...");
     try {
       const [cartRes, orderRes, wishlistRes] = await Promise.all([
-        fetch(`https://electro-mart-qalg.vercel.app/api/cart`, { credentials: "include", cache: "no-store" }),
-        fetch(`https://electro-mart-qalg.vercel.app/api/orders/myorders`, { credentials: "include", cache: "no-store" }),
-        fetch(`https://electro-mart-qalg.vercel.app/api/users/wishlist`, { credentials: "include", cache: "no-store" })
+        authFetch(`${API}/api/cart`, { cache: "no-store" }),
+        authFetch(`${API}/api/orders/myorders`, { cache: "no-store" }),
+        authFetch(`${API}/api/users/wishlist`, { cache: "no-store" })
       ]);
       
       if (cartRes.ok) {
@@ -135,6 +134,7 @@ function App() {
   };
 
   const handleLogin = (userData) => {
+    if (userData.token) setToken(userData.token);
     setIsAuthenticated(true);
     setCurrentUser(userData);
     fetchUserData();
@@ -142,6 +142,7 @@ function App() {
   };
 
   const handleSignup = (userData) => {
+    if (userData.token) setToken(userData.token);
     setIsAuthenticated(true);
     setCurrentUser(userData);
     fetchUserData();
@@ -150,13 +151,11 @@ function App() {
 
   const handleLogout = async () => {
     try {
-      await fetch(`https://electro-mart-qalg.vercel.app/api/auth/logout`, {
-        method: "POST",
-        credentials: "include",
-      });
+      await authFetch(`${API}/api/auth/logout`, { method: "POST" });
     } catch (error) {
       console.error("Logout failed:", error);
     }
+    removeToken();
     setIsAuthenticated(false);
     setCurrentUser(null);
     setCartItems([]);
@@ -177,10 +176,9 @@ function App() {
       const existing = cartItems.find((item) => item._id === product._id);
       const newQuantity = existing ? existing.quantity + 1 : 1;
       
-      const response = await fetch(`https://electro-mart-qalg.vercel.app/api/cart`, {
+      const response = await authFetch(`${API}/api/cart`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify({ productId: product._id, quantity: newQuantity })
       });
       
@@ -208,10 +206,9 @@ function App() {
         showToast("Already in wishlist", "error");
         return;
       }
-      const response = await fetch(`https://electro-mart-qalg.vercel.app/api/users/wishlist`, {
+      const response = await authFetch(`${API}/api/users/wishlist`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify({ productId: product._id })
       });
       if (response.ok) {
@@ -229,10 +226,9 @@ function App() {
 
   const removeWishlist = async (id) => {
     try {
-      const response = await fetch(`https://electro-mart-qalg.vercel.app/api/users/wishlist`, {
+      const response = await authFetch(`${API}/api/users/wishlist`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify({ productId: id })
       });
       if (response.ok) {
@@ -249,10 +245,9 @@ function App() {
     const existing = cartItems.find((item) => item._id === id);
     if(!existing) return;
     try {
-      const response = await fetch(`https://electro-mart-qalg.vercel.app/api/cart`, {
+      const response = await authFetch(`${API}/api/cart`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify({ productId: id, quantity: existing.quantity + 1 })
       });
       if(response.ok){
@@ -273,10 +268,9 @@ function App() {
        return removeFromCart(id);
     }
     try {
-      const response = await fetch(`https://electro-mart-qalg.vercel.app/api/cart`, {
+      const response = await authFetch(`${API}/api/cart`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify({ productId: id, quantity: existing.quantity - 1 })
       });
       if(response.ok){
@@ -292,9 +286,8 @@ function App() {
 
   const removeFromCart = async (id) => {
     try {
-      const response = await fetch(`https://electro-mart-qalg.vercel.app/api/cart/${id}`, {
-        method: "DELETE",
-        credentials: "include"
+      const response = await authFetch(`${API}/api/cart/${id}`, {
+        method: "DELETE"
       });
       if (response.ok) {
         const cartData = await response.json();
@@ -363,10 +356,9 @@ function App() {
     };
 
     try {
-       const response = await fetch(`https://electro-mart-qalg.vercel.app/api/orders`, {
+       const response = await authFetch(`${API}/api/orders`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          credentials: "include",
           body: JSON.stringify(orderPayload)
        });
 
@@ -374,9 +366,8 @@ function App() {
           const newOrder = await response.json();
           setOrders(prev => [newOrder, ...prev]);
           
-          await fetch(`https://electro-mart-qalg.vercel.app/api/cart/clear`, {
-             method: "DELETE",
-             credentials: "include"
+          await authFetch(`${API}/api/cart/clear`, {
+             method: "DELETE"
           });
           setCartItems([]);
           setCoupon(null);
