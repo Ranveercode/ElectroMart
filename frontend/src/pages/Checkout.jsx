@@ -1,6 +1,45 @@
 import { useMemo, useState } from "react";
 import { Navigate } from "react-router-dom";
 
+// Indian states → cities mapping
+const INDIA_STATE_CITIES = {
+  "Andhra Pradesh": ["Visakhapatnam", "Vijayawada", "Guntur", "Nellore", "Kurnool", "Tirupati", "Rajahmundry", "Kakinada", "Kadapa", "Anantapur"],
+  "Arunachal Pradesh": ["Itanagar", "Naharlagun", "Pasighat", "Tawang", "Ziro", "Bomdila", "Along", "Tezu", "Roing", "Changlang"],
+  "Assam": ["Guwahati", "Silchar", "Dibrugarh", "Jorhat", "Nagaon", "Tinsukia", "Tezpur", "Bongaigaon", "Dhubri", "Karimganj"],
+  "Bihar": ["Patna", "Gaya", "Bhagalpur", "Muzaffarpur", "Purnia", "Darbhanga", "Arrah", "Begusarai", "Katihar", "Munger"],
+  "Chhattisgarh": ["Raipur", "Bhilai", "Bilaspur", "Korba", "Durg", "Rajnandgaon", "Raigarh", "Jagdalpur", "Ambikapur", "Mahasamund"],
+  "Goa": ["Panaji", "Margao", "Vasco da Gama", "Mapusa", "Ponda", "Bicholim", "Curchorem", "Sanquelim", "Cuncolim", "Quepem"],
+  "Gujarat": ["Ahmedabad", "Surat", "Vadodara", "Rajkot", "Bhavnagar", "Jamnagar", "Junagadh", "Gandhinagar", "Anand", "Nadiad"],
+  "Haryana": ["Gurugram", "Faridabad", "Panipat", "Ambala", "Karnal", "Sonipat", "Hisar", "Rohtak", "Yamunanagar", "Panchkula"],
+  "Himachal Pradesh": ["Shimla", "Manali", "Dharamshala", "Solan", "Mandi", "Kullu", "Bilaspur", "Hamirpur", "Una", "Nahan"],
+  "Jharkhand": ["Ranchi", "Jamshedpur", "Dhanbad", "Bokaro", "Hazaribagh", "Deoghar", "Giridih", "Ramgarh", "Dumka", "Phusro"],
+  "Karnataka": ["Bengaluru", "Mysuru", "Mangaluru", "Hubli", "Dharwad", "Belagavi", "Kalaburagi", "Davangere", "Ballari", "Shivamogga"],
+  "Kerala": ["Thiruvananthapuram", "Kochi", "Kozhikode", "Thrissur", "Kollam", "Palakkad", "Alappuzha", "Kannur", "Kottayam", "Malappuram"],
+  "Madhya Pradesh": ["Bhopal", "Indore", "Jabalpur", "Gwalior", "Ujjain", "Sagar", "Dewas", "Satna", "Ratlam", "Rewa"],
+  "Maharashtra": ["Mumbai", "Pune", "Nagpur", "Thane", "Nashik", "Aurangabad", "Solapur", "Kolhapur", "Amravati", "Navi Mumbai"],
+  "Manipur": ["Imphal", "Thoubal", "Bishnupur", "Churachandpur", "Ukhrul", "Senapati", "Tamenglong", "Chandel", "Jiribam", "Kakching"],
+  "Meghalaya": ["Shillong", "Tura", "Jowai", "Nongstoin", "Williamnagar", "Baghmara", "Resubelpara", "Mairang", "Nongpoh", "Khliehriat"],
+  "Mizoram": ["Aizawl", "Lunglei", "Champhai", "Serchhip", "Kolasib", "Lawngtlai", "Saiha", "Mamit", "Hnahthial", "Saitual"],
+  "Nagaland": ["Kohima", "Dimapur", "Mokokchung", "Tuensang", "Wokha", "Zunheboto", "Mon", "Phek", "Kiphire", "Longleng"],
+  "Odisha": ["Bhubaneswar", "Cuttack", "Rourkela", "Brahmapur", "Sambalpur", "Puri", "Balasore", "Baripada", "Bhadrak", "Jharsuguda"],
+  "Punjab": ["Ludhiana", "Amritsar", "Jalandhar", "Patiala", "Bathinda", "Mohali", "Hoshiarpur", "Pathankot", "Moga", "Firozpur"],
+  "Rajasthan": ["Jaipur", "Jodhpur", "Udaipur", "Kota", "Bikaner", "Ajmer", "Bhilwara", "Alwar", "Sikar", "Sri Ganganagar"],
+  "Sikkim": ["Gangtok", "Namchi", "Gyalshing", "Mangan", "Rangpo", "Singtam", "Jorethang", "Ravangla", "Soreng", "Pakyong"],
+  "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai", "Tiruchirappalli", "Salem", "Tirunelveli", "Erode", "Vellore", "Thoothukudi", "Dindigul"],
+  "Telangana": ["Hyderabad", "Warangal", "Nizamabad", "Karimnagar", "Khammam", "Mahbubnagar", "Ramagundam", "Nalgonda", "Adilabad", "Suryapet"],
+  "Tripura": ["Agartala", "Udaipur", "Dharmanagar", "Kailasahar", "Belonia", "Ambassa", "Khowai", "Sabroom", "Sonamura", "Bishalgarh"],
+  "Uttar Pradesh": ["Lucknow", "Kanpur", "Agra", "Varanasi", "Prayagraj", "Meerut", "Ghaziabad", "Noida", "Bareilly", "Aligarh"],
+  "Uttarakhand": ["Dehradun", "Haridwar", "Rishikesh", "Haldwani", "Roorkee", "Kashipur", "Rudrapur", "Nainital", "Mussoorie", "Pithoragarh"],
+  "West Bengal": ["Kolkata", "Howrah", "Durgapur", "Asansol", "Siliguri", "Bardhaman", "Malda", "Baharampur", "Habra", "Kharagpur"],
+  "Delhi": ["New Delhi", "Delhi", "Dwarka", "Rohini", "Saket", "Karol Bagh", "Connaught Place", "Lajpat Nagar", "Janakpuri", "Pitampura"],
+  "Chandigarh": ["Chandigarh"],
+  "Puducherry": ["Puducherry", "Karaikal", "Mahe", "Yanam"],
+  "Jammu and Kashmir": ["Srinagar", "Jammu", "Anantnag", "Baramulla", "Sopore", "Kathua", "Udhampur", "Poonch", "Rajouri", "Pulwama"],
+  "Ladakh": ["Leh", "Kargil"],
+};
+
+const INDIAN_STATES = Object.keys(INDIA_STATE_CITIES).sort();
+
 function Checkout({ cartItems, subtotal, shipping, tax, totalPrice, onPlaceOrder }) {
   const [formData, setFormData] = useState({
     fullName: "",
@@ -10,7 +49,7 @@ function Checkout({ cartItems, subtotal, shipping, tax, totalPrice, onPlaceOrder
     city: "",
     state: "",
     zipCode: "",
-    country: "",
+    country: "India",
   });
 
   const [paymentMethod, setPaymentMethod] = useState("Cash on Delivery");
@@ -24,23 +63,22 @@ function Checkout({ cartItems, subtotal, shipping, tax, totalPrice, onPlaceOrder
 
   const formatPrice = (price) => `₹${price.toLocaleString("en-IN")}`;
 
+  // Get available cities based on selected state
+  const availableCities = formData.state ? INDIA_STATE_CITIES[formData.state] || [] : [];
+
   const validateForm = () => {
     const newErrors = {};
 
     const nameRegex = /^[A-Za-z ]{3,50}$/;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
     const phoneRegex = /^[0-9]{10}$/;
-    const cityStateCountryRegex = /^[A-Za-z ]{2,40}$/;
     const zipRegex = /^[A-Za-z0-9 -]{4,10}$/;
 
     const trimmedName = formData.fullName.trim();
     const trimmedEmail = formData.email.trim();
     const trimmedPhone = formData.phone.trim();
     const trimmedAddress = formData.address.trim();
-    const trimmedCity = formData.city.trim();
-    const trimmedState = formData.state.trim();
     const trimmedZip = formData.zipCode.trim();
-    const trimmedCountry = formData.country.trim();
 
     if (!trimmedName) {
       newErrors.fullName = "Full name is required";
@@ -68,16 +106,12 @@ function Checkout({ cartItems, subtotal, shipping, tax, totalPrice, onPlaceOrder
       newErrors.address = "Address must include both letters and numbers";
     }
 
-    if (!trimmedCity) {
-      newErrors.city = "City is required";
-    } else if (!cityStateCountryRegex.test(trimmedCity)) {
-      newErrors.city = "City should contain only letters";
+    if (!formData.state) {
+      newErrors.state = "Please select a state";
     }
 
-    if (!trimmedState) {
-      newErrors.state = "State is required";
-    } else if (!cityStateCountryRegex.test(trimmedState)) {
-      newErrors.state = "State should contain only letters";
+    if (!formData.city) {
+      newErrors.city = "Please select a city";
     }
 
     if (!trimmedZip) {
@@ -86,10 +120,8 @@ function Checkout({ cartItems, subtotal, shipping, tax, totalPrice, onPlaceOrder
       newErrors.zipCode = "Enter a valid ZIP / Postal code";
     }
 
-    if (!trimmedCountry) {
+    if (!formData.country.trim()) {
       newErrors.country = "Country is required";
-    } else if (!cityStateCountryRegex.test(trimmedCountry)) {
-      newErrors.country = "Country should contain only letters";
     }
 
     setErrors(newErrors);
@@ -100,7 +132,7 @@ function Checkout({ cartItems, subtotal, shipping, tax, totalPrice, onPlaceOrder
     const { name, value } = e.target;
     let updatedValue = value;
 
-    if (name === "fullName" || name === "city" || name === "state" || name === "country") {
+    if (name === "fullName") {
       updatedValue = value.replace(/[^A-Za-z ]/g, "");
     }
 
@@ -114,6 +146,21 @@ function Checkout({ cartItems, subtotal, shipping, tax, totalPrice, onPlaceOrder
 
     if (name === "address") {
       updatedValue = value.replace(/\s{2,}/g, " ").slice(0, 120);
+    }
+
+    // When state changes, reset city selection
+    if (name === "state") {
+      setFormData((prev) => ({
+        ...prev,
+        state: updatedValue,
+        city: "",
+      }));
+      setErrors((prev) => ({
+        ...prev,
+        state: "",
+        city: "",
+      }));
+      return;
     }
 
     setFormData((prev) => ({
@@ -216,29 +263,37 @@ function Checkout({ cartItems, subtotal, shipping, tax, totalPrice, onPlaceOrder
               </div>
 
               <div className="form-group">
-                <label>City</label>
-                <input
-                  type="text"
-                  name="city"
+                <label>State</label>
+                <select
+                  name="state"
                   className="input-control"
-                  placeholder="Delhi"
-                  value={formData.city}
+                  value={formData.state}
                   onChange={handleChange}
-                />
-                {errors.city && <p className="form-error">{errors.city}</p>}
+                >
+                  <option value="">-- Select State --</option>
+                  {INDIAN_STATES.map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+                {errors.state && <p className="form-error">{errors.state}</p>}
               </div>
 
               <div className="form-group">
-                <label>State</label>
-                <input
-                  type="text"
-                  name="state"
+                <label>City</label>
+                <select
+                  name="city"
                   className="input-control"
-                  placeholder="Delhi"
-                  value={formData.state}
+                  value={formData.city}
                   onChange={handleChange}
-                />
-                {errors.state && <p className="form-error">{errors.state}</p>}
+                  disabled={!formData.state}
+                  style={!formData.state ? { opacity: 0.5, cursor: "not-allowed" } : {}}
+                >
+                  <option value="">{formData.state ? "-- Select City --" : "-- Select State First --"}</option>
+                  {availableCities.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+                {errors.city && <p className="form-error">{errors.city}</p>}
               </div>
 
               <div className="form-group form-group-full">
@@ -247,9 +302,9 @@ function Checkout({ cartItems, subtotal, shipping, tax, totalPrice, onPlaceOrder
                   type="text"
                   name="country"
                   className="input-control"
-                  placeholder="India"
                   value={formData.country}
-                  onChange={handleChange}
+                  readOnly
+                  style={{ opacity: 0.7, cursor: "default" }}
                 />
                 {errors.country && <p className="form-error">{errors.country}</p>}
               </div>
