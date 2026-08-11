@@ -885,7 +885,7 @@ function Profile({ currentUser, onUpdateProfile, onLogout }) {
                 </div>
                 <div className="support-item">
                   <span>Email</span>
-                  <strong>support@electromart.com</strong>
+                  <strong>ranveersrivastava.in@gmail.com</strong>
                 </div>
                 <div className="support-item">
                   <span>Live Chat</span>
