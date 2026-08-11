@@ -881,7 +881,7 @@ function Profile({ currentUser, onUpdateProfile, onLogout }) {
               <div className="support-list">
                 <div className="support-item">
                   <span>Call Support</span>
-                  <strong>1800-123-4567</strong>
+                  <strong>9414622083</strong>
                 </div>
                 <div className="support-item">
                   <span>Email</span>
