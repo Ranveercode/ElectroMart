@@ -27,8 +27,11 @@ function Checkout({ cartItems, subtotal, shipping, tax, totalPrice, onPlaceOrder
 
   const formatPrice = (price) => `₹${price.toLocaleString("en-IN")}`;
 
-  // Get available cities based on selected state
-  const availableCities = formData.state ? INDIA_STATE_CITIES[formData.state] || [] : [];
+  // Get available cities based on selected state, sorted alphabetically
+  const availableCities = useMemo(() => {
+    if (!formData.state || !INDIA_STATE_CITIES[formData.state]) return [];
+    return [...INDIA_STATE_CITIES[formData.state]].sort((a, b) => a.localeCompare(b));
+  }, [formData.state]);
 
   const validateForm = () => {
     const newErrors = {};
