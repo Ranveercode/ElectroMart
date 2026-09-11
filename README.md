@@ -1,15 +1,37 @@
 <div align="center">
 
-# ⚡ ElectroMart — AI-Powered E-Commerce Platform
+# ⚡ ElectroMart — Autonomous AI-Powered E-Commerce Platform
 
-A full-stack MERN e-commerce platform with an **autonomous AI shopping assistant** powered by Llama 3.1 via the Groq API. Users can browse products, manage carts, place orders, and interact with an AI agent that can search products and add items to cart through natural conversation.
+**A scalable full-stack MERN e-commerce ecosystem featuring an autonomous conversational shopping agent powered by Groq API (Llama 3.1) with real-time tool execution.**
 
 [![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-Visit_Store-blue?style=for-the-badge)](https://electro-mart-bawe-omega.vercel.app)
-[![Admin Panel](https://img.shields.io/badge/🔧_Admin_Panel-Dashboard-orange?style=for-the-badge)](https://electro-mart-admin-panel.vercel.app)
+[![Admin Panel](https://img.shields.io/badge/🔧_Admin_Portal-Dashboard-orange?style=for-the-badge)](https://electro-mart-admin-panel.vercel.app)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
+
+<br/>
+
+![React](https://img.shields.io/badge/React_19-20232A?style=flat-square&logo=react&logoColor=61DAFB)
+![Vite](https://img.shields.io/badge/Vite_8-646CFF?style=flat-square&logo=vite&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-339933?style=flat-square&logo=nodedotjs&logoColor=white)
+![Express.js](https://img.shields.io/badge/Express.js-000000?style=flat-square&logo=express&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB_Atlas-47A248?style=flat-square&logo=mongodb&logoColor=white)
+![Groq](https://img.shields.io/badge/Groq_Cloud-Llama_3.1-f55036?style=flat-square)
+![JWT](https://img.shields.io/badge/JWT-Dual_Mode_Auth-black?style=flat-square&logo=jsonwebtokens)
+![Vercel](https://img.shields.io/badge/Vercel-Serverless-000000?style=flat-square&logo=vercel&logoColor=white)
 
 </div>
 
 ---
+
+## 📌 Executive Summary & Key Highlights
+
+ElectroMart is engineered to bridge traditional e-commerce web applications with next-generation **Agentic AI Commerce**. Built with a decoupled MERN architecture, it allows shoppers to interact naturally with an AI assistant that queries inventory in real-time, filters prices, and performs direct cart mutations through structured LLM function calling.
+
+- 🤖 **Autonomous AI Shopping Agent:** Powered by Llama 3.1 on Groq with sub-second inference latency, executing live MongoDB catalog search and cart mutations via LLM function calling.
+- 📱 **Resilient Mobile Authorization:** Dual-mode JWT architecture (`Authorization: Bearer` headers + HTTP cookie fallback) with Nodemailer OTP verification, ensuring 100% session persistence on iOS Safari and Android Chrome.
+- 📍 **Smart Indian Geolocation Checkout:** Cascading address validator with all 36 Indian States/UTs and 1,100+ cities mapped alphabetically (A-Z) to prevent shipping fulfillment errors.
+- ⚡ **High Performance & Serverless Ready:** Lightweight client bundle with zero heavy CSS frameworks, paired with Vercel Serverless backend API routes and MongoDB Atlas connection pooling.
+- 🛡️ **Role-Based Access Control (RBAC):** Dedicated administrative portal for inventory CRUD, real-time stock management, user audits, and order lifecycle tracking.
 
 ## 📸 Screenshots
 
