@@ -15,6 +15,10 @@ async function connectDB() {
     if (!connectionPromise) {
         connectionPromise = mongoose.connect(process.env.MONGO_URI, {
             serverSelectionTimeoutMS: 5000,
+        }).catch((err) => {
+            // Reset the cached promise so the NEXT request retries a fresh connection
+            connectionPromise = null;
+            throw err;
         });
     }
     await connectionPromise;
